@@ -1,0 +1,50 @@
+<Node name="root" dt="0.01" gravity="0.0 -9.81 0">
+	<RequiredPlugin pluginName='SofaOpenglVisual'/>
+	<VisualStyle displayFlags="showBehavior" />
+
+	
+	<Node name="TorusSpring">
+		<EulerImplicitSolver name="ODE solver" rayleighStiffness="0.01" rayleighMass="1.0" />
+		<CGLinearSolver name="linear solver" iterations="25" tolerance="1e-10" threshold="10e-10"/>
+		
+		<SparseGridTopology name="Embedded Sparse Grid"  fileTopology="mesh/torus.obj" n="10 10 10" />
+		<MechanicalObject template="Vec3d" src="Particles" restScale="1" position="0 0 0"/>
+		<UniformMass  template="Vec3d" totalMass="4"/>
+		<HexahedronFEMForceField template="Vec3d" name="FEM" poissonRatio="0.45" youngModulus="2000"  gatherPt=" "  gatherBsize=" " />
+		
+		<!--
+		<OglModel name="VisualModel" src="@meshLoader" />
+		<Mesh name="Mesh" src="@meshLoader"/>
+		
+		<MeshSpringForceField template="Vec3d" name="Springs" tetrasStiffness="2000" tetrasDamping="5"/>
+		-->
+		
+			
+		<Node name="Visu">
+			<MeshObjLoader name="meshLoader" filename="mesh/torus.obj" />
+			<OglModel template="ExtVec3f" name="Objected" src="@meshLoader" color="green" primitiveType="DEFAULT"  blendEquation="GL_FUNC_ADD"  sfactor="GL_SRC_ALPHA"  dfactor="GL_ONE_MINUS_SRC_ALPHA"/>
+			<BarycentricMapping template="Vec3d,ExtVec3f" name="Visual Mapping"  input="@../"  output="@Objected" />
+		</Node>
+		
+		<BoxROI name="ROI" box="-5 -2 -10 -1 2 10" drawBoxes="true" />
+		<FixedConstraint indices="@ROI.indices" />
+	</Node>
+<!--
+	<Node name="TotusFEMHexa">
+		<EulerImplicitSolver rayleighStiffness="0.01"/>
+		<CGLinearSolver iterations="20" tolerance="1e-06" threshold="1e-06"/>
+		<RegularGrid nx="6" ny="2" nz="5" xmin="-2.5" xmax="2.5" ymin="-0.5" ymax="0.5" zmin="-2" zmax="2"/>
+		<MechanicalObject template="Vec3d" src="@meshLoader"/>
+		<HexahedronFEMForceField name="HFEM" youngModulus="500" poissonRatio="0.3"/>
+		<UniformMass totalMass="4"/>
+		<BoxROI name="ROI" box="-5 -2 -10 -1 2 10" drawBoxes="true" />
+		<FixedConstraint indices="@ROI.indices" />
+	</Node>
+	
+	<Node name="Fixed">
+		<MeshObjLoader name="loader" filename="mesh/low-resolution-torus.obj"/>
+		<Mesh src="@loader"/>
+		<MechanicalObject src="@loader" rx="90"/>
+		<OglModel name="Visual" fileMesh="torus.obj" color="gray" rx="90"/>
+	</Node>-->
+</Node>

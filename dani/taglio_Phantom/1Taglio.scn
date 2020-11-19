@@ -1,0 +1,90 @@
+<?xml version="1.0"?>
+<Node name="root" dt="0.05" animate="0" gravity="0 0 0" >
+    <RequiredPlugin name="SofaOpenglVisual"/>
+	<RequiredPlugin name="SofaHaptics"/>
+	<RequiredPlugin name="SofaSparseSolver"/>
+	
+    <DefaultPipeline name="pipeline" depth="6" verbose="0" />
+    <BruteForceDetection name="N2" />
+    <DefaultContactManager response="default" />
+    <MinProximityIntersection name="Proximity" alarmDistance="2" contactDistance="1" />
+
+	<Node name="Grab">
+		<EulerImplicitSolver name="cg_odesolver" printLog="false"  rayleighStiffness="0.1" rayleighMass="0.1" />
+		<CGLinearSolver iterations="25" name="linear solver" tolerance="1.0e-9" threshold="1.0e-9" />
+		<MechanicalObject name="ms1" template="Rigid3d" />
+		<UniformMass name="mass" />
+		<Node name="CutEdges">
+
+			<MeshTopology position="-0.2745 -2.7482 -40.7508    -0.2760 -1.5256 -40.7505    -0.2775 -0.3030 -40.4702    -0.2790 0.9196 -40.4699" edges="0 1 1 2 2 3" />
+			<MechanicalObject name="vertices" />
+			<LineCollisionModel name="CM" group="1" simulated="0" moving="1" contactStiffness="0" />
+			<RigidMapping index="0" />
+
+		</Node>
+		<!--<Node name="GrabSurfaceL">
+
+			<MeshObjLoader name="loaderPince" filename="./data/pince_cm_left_cut.obj" triangulate="1" />
+			<MeshTopology src="@loaderPince" />
+			<MechanicalObject name="vertices" src="@loaderPince" />
+			<TriangleCollisionModel group="1" simulated="0" moving="1" />
+			<LineCollisionModel group="1" simulated="0" moving="1" />
+			<PointCollisionModel group="1" simulated="0" moving="1" />
+			<RigidMapping index="0" />
+		</Node>-->
+		<Node name="GrabSurfaceR">
+
+			<MeshObjLoader name="loaderPince" filename="./data/pince_cm_right_cut.obj" triangulate="1" />
+			<MeshTopology src="@loaderPince" />
+			<MechanicalObject name="vertices" src="@loaderPince" />
+			<TriangleCollisionModel group="1" simulated="0" moving="1" />
+			<LineCollisionModel group="1" simulated="0" moving="1" />
+			<PointCollisionModel group="1" simulated="0" moving="1" />
+			<RigidMapping index="0" />
+		</Node>
+
+		<Node name="GrabVisualL">
+
+			<MeshObjLoader name="LoaderLeft" filename="./data/pince_left.obj"/>
+			<OglModel name="vm" src="@LoaderLeft" />
+			<RigidMapping index="0" />
+
+		</Node>
+		<!--<Node name="GrabVisualR">
+
+			<MeshObjLoader name="LoaderRight" filename="./data/pince_right.obj"/>
+			<OglModel name="vm" src="@LoaderRight" />
+			<RigidMapping index="0" />
+
+		</Node>-->
+	</Node>
+    <Node name="SquareGravity">
+        
+		<EulerImplicitSolver name="cg_odesolver" printLog="false"  rayleighStiffness="0.1" rayleighMass="0.1" />
+        <CGLinearSolver iterations="25" name="linear solver" tolerance="1.0e-9" threshold="1.0e-9" />
+        <MeshGmshLoader name="meshLoader" filename="mesh/square3.msh" scale="100" createSubelements="true"/>
+        <include href="Objects/TriangleSetTopology.xml" src="@meshLoader" />
+        <MechanicalObject rx2="0" dx2="5" dy2="-50" />
+        <DiagonalMass massDensity="0.15" />
+        <FixedConstraint indices="0 1 2 3" />
+        <TriangularFEMForceField name="FEM" youngModulus="6000" poissonRatio="0.35" method="large" showStressValue="false" showStressVector="false"
+			showFracturableTriangles="true" hosfordExponant="10.0" criteriaValue="10000" computePrincipalStress="true"/>
+        <TriangularBendingSprings name="FEM-Bend" stiffness="3000" damping="1.0" />
+        <TriangleCollisionModel name="cmTriangles" contactStiffness="5000" />
+        <LineCollisionModel name="cmLines" contactStiffness="5000" />
+        <PointCollisionModel name="cmPoints" contactStiffness="5000" />
+        
+		<Node name="VM">
+            <OglModel name="Visual" color="red" />
+            <IdentityMapping />
+        </Node>
+        
+		<MICSCuttingManager modelSurface="cmTriangles" modelTool="/Grab/CutEdges/CM" pointedTip="1" minDistance="1" maxDistance="10" printLog="1" triangleInfo="@FEM.triangleInfo" fractureStress="-9000" radius="50"/>
+        <BruteForceDetection name="N2" />
+        <DiscreteIntersection name="CutIntersection" />
+    </Node>
+  <Node name="Floor">
+	  <MeshObjLoader name="MeshFloor" filename="mesh/floor.obj"/>    
+	  <OglModel name="FloorV" src="@MeshFloor" scale="1" dy="-100" />
+  </Node>
+</Node>

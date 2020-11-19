@@ -1,0 +1,61 @@
+<?xml version="1.0" ?>
+<Node name="root" dt="0.1" gravity="0 -9.81 0">
+
+	<RequiredPlugin name="SofaOpenglVisual" />
+	<VisualStyle displayFlags="showBehavior"/>
+	<DefaultPipeline name="DefaultCollisionPipeline" verbose="0" draw="0" depth="6"/>
+	<BruteForceDetection name="Detection"/>
+	<MinProximityIntersection name="Proximity" alarmDistance="3" contactDistance="2"/>
+	<DefaultContactManager name="Response" response="default"/>
+	
+	<Node name="tetrahedral mesh">
+
+		<EulerImplicitSolver name="cg_odesolver" printLog="0"  rayleighStiffness="0.1" rayleighMass="0.1" />
+		<CGLinearSolver template="GraphScattered" name="linear solver" iterations="25" tolerance="1e-09" threshold="1e-09" />
+		
+		<MeshGmshLoader name="loader" filename="mesh/cylinder.msh"/>
+		
+		<TetrahedronSetTopologyContainer name="Container" src="@loader"/>
+		<!-- è un container nel quale andiamo a mettere una topology come posizione triangoli tetraedri ecc.. viene presa direttamente dal mesh loader-->
+		<MechanicalObject name="Volume"/>
+		<!-- questo oggetto viene creato percè fa parte del container. il container fa parte della mesh e quindi non abbiamo bisogno di definire la sorgente nell'oggetto
+			 se tirassi fuori l'oggetto avrei bisogno di definirgli la src in modo tale da linkarlo alla mesh -->
+		<TetrahedronSetGeometryAlgorithms name="GeomAlgo" drawTetrahedra="0" drawColorTetrahedra="1.0 1.0 0.3 1.0"/>
+		<!-- serve per mostrare gli elementi topologici-->
+		<TetrahedralCorotationalFEMForceField  template="Vec3d" name="FEM" method="large" poissonRatio="0.3" youngModulus="360" assembling="0"/>
+		<!-- mi crea i tetraedri usati dalla mesh sull'oggetto-->
+		<DiagonalMass template="Vec3d" name="default" massDensity="2.0"/>
+		<!-- definisce la massa globale della mesh -->
+		<FixedPlaneConstraint template="Vec3d" name="defaultPlane" direction="0 0 1" dmin="-0.1" dmax="0.1"/>
+		<!-- crea un piano -->
+		<FixedConstraint template="Vec3d" name="constraint" indices="0"/>
+		<!-- fissa un'estremità della faccia del cilindro-->
+		
+		<Node name="Triangle Mesh">
+
+			<TriangleSetTopologyContainer name="Container"/>
+			<!-- mettiamo le topologies-->
+			<TriangleSetTopologyModifier name="Modifier"/>
+			<!-- mi modifica le topologie all'interno di un container-->
+			<TriangleSetGeometryAlgorithms name="GeomAlg"/>
+			<TriangleSetTopologyAlgorithms  name="TopoAlgo" />
+			<!-- mostra le topologie -->
+			<Tetra2TriangleTopologicalMapping name="Mapping" input="@../Container" output="@Container" />
+			<!-- qui vado a modificare il mio container, lo vado a riempire, quindi devo dare i permessi alle modifiche -->
+			<TriangularBendingSprings name="FEM-Bend" stiffness="10" damping="1"/>
+			<TriangleCollisionModel name="Models"/>
+			
+			<!-- cambiamo le topologie, partendo dai tetraedri del primo container passiamo ai triangoli del secondo-->
+			<!-- ovvero vado a riempire le topologie del secondo container con quelle del primo, ma con la conversione delle topologie-->
+			
+
+			<Node name="visualization">
+				
+				<OglModel name="Visual" material="Default Diffuse 1 0 0 1 1 Ambient 1 0 0 0.2 1 Specular 0 0 0 1 1 Emissive 0 0 0 1 1 Shininess 0 45" />
+				<!-- qui creo l'oggetto della visualizzazione -->
+				<IdentityMapping input="@../../Volume" output="@Visual"/>
+				<!-- qui vado a riempire l'oggetto della visualizzazione con il mio oggetto fisico-->
+			</Node>
+		</Node>
+ 	</Node>
+</Node>

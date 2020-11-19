@@ -1,0 +1,48 @@
+<?xml version="1.0" ?>
+<Node name="root" dt="0.01" showBoundingTree="0" gravity="0 0 -0.9">
+    <RequiredPlugin name="SofaOpenglVisual"/>
+  <RequiredPlugin name="Carving" pluginName="SofaCarving" />
+
+  <VisualStyle displayFlags="showCollisionModels" />
+  
+  <DefaultPipeline verbose="0" />
+  <BruteForceDetection name="Detection" />
+  <DefaultContactManager response="default" />
+  <MinProximityIntersection name="Proximity" alarmDistance="0.5" contactDistance="0.02"/>
+
+	<Node name="Mesh">
+		<EulerImplicitSolver name="cg_odesolver" printLog="0"  rayleighStiffness="0.1" rayleighMass="0.1" />
+		<CGLinearSolver template="GraphScattered" name="linear solver" iterations="40" tolerance="1e-09" threshold="1e-09" />
+
+		<MeshGmshLoader filename="mesh/cylinder.msh" name="loader" />
+		<MechanicalObject src="@loader" name="Volume" scale="10" />
+
+		<TetrahedronSetTopologyContainer name="Container" src="@loader"/>
+		<TetrahedronSetTopologyModifier name="Modifier"/>
+		<PlaneROI plane="10 10 10 0 0 0 0 0.3 0 0" drawBoxes="1" position="@Volume.rest_position" computeTriangles="0" computeTetrahedra="0" computeEdges="0" name="FixedROI" />
+		<TetrahedronSetTopologyAlgorithms name="TopoAlgo" template="Vec3d" subDivideTetrahedronsWithPlane="10 10 10 0 0 0 0 0.3 0 0"/>
+		<TetrahedronSetGeometryAlgorithms name="GeomAlgo" template="Vec3d"/>
+		<DiagonalMass massDensity="2" />
+		<TetrahedralCorotationalFEMForceField template="Vec3d" name="FEM" youngModulus="2000" poissonRatio="0.45" method="large" />
+
+		
+
+		<BoxROI name="ROI1" box="-1 -1 -1 1 1 0.01" drawBoxes="1" />
+		<FixedConstraint indices="@ROI1.indices" />
+		<Node name="Surface">
+			<TriangleSetTopologyContainer name="Container"/>
+			<TriangleSetTopologyModifier name="Modifier"/>
+			<TriangleSetTopologyAlgorithms name="TopoAlgo" template="Vec3d"/>
+			<TriangleSetGeometryAlgorithms name="GeomAlgo" template="Vec3d"/>
+			<Tetra2TriangleTopologicalMapping input="@../Container" output="@Container" />
+
+			<TriangleCollisionModel name="default9" />
+
+			<PointCollisionModel name="pointCol"/>
+			<Node name="Visu">
+				<OglModel name="Visual" material="Default Diffuse 1 0 1 0 0.75 Ambient 0 1 1 1 1 Specular 1 1 1 0 1 Emissive 0 1 1 0 1 Shininess 1 100"/>
+				<IdentityMapping input="@../../Volume" output="@Visual" />
+			</Node>
+		</Node>
+	</Node>
+</Node>

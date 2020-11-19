@@ -1,0 +1,18 @@
+<?xml version="1.0" ?>
+<Node name="root" dt="0.01" gravity="0 0 -9.86">
+	<RequiredPlugin name="SofaOpenglVisual"/>
+	<VisualStyle displayFlags=" showBehavior"/>
+	<MeshObjLoader name="dragon" filename="mesh/dragon.obj" handleSeams="1"/>
+	<OglModel template="ExtVec3f" name="Objected" src="@dragon"/>
+	<DefaultPipeline name="DefaultCollisionPipeline" verbose="0" draw="0" depth="6"/>
+	<!--lancia tutti le operazioni per performare la collionse in detection e risposta. La collisione in detection è divisa in due parti: vicina e lontana
+		la lontana tiene conto degli assi dell bounding box e la loro distanza.
+		la vicina è implementata da altri elementi che possono essere sfere tiangoli linee o punti, e si calcola sempre la distanza tra questi elementi
+		-->
+	<BruteForceDetection name="Detection" />
+	<!--definisce quali primitive, ovvero quali elementi, dobbiamo tenere in considerazione, dobbiamo usare-->
+	<MinProximityIntersection name="Proximity" alarmDistance="3" contactDistance="2"/>
+	<!--definisce quali sono i parametri per cui una collisione avviene, quindi la distanza sotto la quale si è in collisione-->
+	<DefaultContactManager name="Response" response="default"/>
+	<!--definisce quali sono i parametri della risposta alla collisione, ovvero come dobbiamo rispondere alla collisione avvenuta -->
+</Node>

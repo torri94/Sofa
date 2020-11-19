@@ -1,0 +1,61 @@
+<?xml version="1.0" ?>
+<Node name="root" dt="0.01" showBoundingTree="0" gravity="0 0 -9.81 " >
+	<RequiredPlugin name="Carving" pluginName="SofaCarving" />
+	<RequiredPlugin name="SofaOpenglVisual"/>
+    <RequiredPlugin pluginName='SofaHaptics'/>
+	<RequiredPlugin pluginName='SofaSparseSolver'/>
+	<RequiredPlugin pluginName='SofaMiscCollision'/>
+	<VisualStyle displayFlags="showCollisionModels" />
+	<RequiredPlugin name="Geomagic plugin" pluginName="Geomagic" />
+    
+    <DefaultPipeline name="pipeline" depth="6" verbose="0"/>
+    <BruteForceDetection name="detection" />
+    <DefaultContactManager name="response" response="default" />
+    <MinProximityIntersection name="Proximity" alarmDistance="0.5" contactDistance="0.02"/>
+	<DefaultCollisionGroupManager />
+   
+	<FreeMotionAnimationLoop/>
+
+	<LCPConstraintSolver tolerance="0.001" maxIt="1000"/>
+	<GeomagicDriver name="GeomagicDevice" deviceName="Default Device" scale="1" positionBase="0 0 0" orientationBase="0 0.707 0 -0.707"
+	  drawDevice="0" drawDeviceFrame="1" forceFeedBack="@Instrument/LCPFF1"/>
+	
+   <Node name="Omni">
+        <MechanicalObject template="Rigid3" name="DOFs" position="@GeomagicDevice.positionDevice"/>
+        <MechanicalStateController template="Rigid3" listening="true" mainDirection="-1.0 0.0 0.0" handleEventTriggersUpdate="true"/>
+   </Node>
+	
+	<Node name="Instrument" >
+        <EulerImplicitSolver name="ODE solver" rayleighStiffness="0.01" rayleighMass="0.01" />
+		<SparseLDLSolver />
+
+        
+		<MechanicalObject name="instrumentState" template="Rigid3" />
+		<UniformMass name="mass" totalMass="0.5" />
+
+		<RestShapeSpringsForceField stiffness='1000' angularStiffness='1000' external_rest_shape='@../Omni/DOFs' points='0' external_points='0'/>
+		<LCPForceFeedback name="LCPFF1" activate="true" forceCoef="0.1"/>
+		<LinearSolverConstraintCorrection />
+		
+		<Node name="VisuTool" >
+            <MeshObjLoader name="meshLoader_1" filename="Demos/Dentistry/data/mesh/dental_instrument.obj" handleSeams="1" />
+            <OglModel name="InstrumentVisualModel" src="@meshLoader_1" color="1.0 0.2 0.2 1.0" ry="-180" rz="-90" dz="3.5" dx="-0.3"/>
+            <RigidMapping name="MM->VM mapping" input="@instrumentState" output="@InstrumentVisualModel" />
+			<Node name="CollisionModelInstrument" >
+					<MeshObjLoader filename="Demos/Dentistry/data/mesh/dental_instrument_centerline.obj"  name="loader"/>
+					<MeshTopology src="@loader" name="InstrumentCollisionModel" />
+					<MechanicalObject src="@loader" name="instrumentCollisionState"  ry="-180" rz="-90" dz="3.5" dx="-0.3" />
+					<LineCollisionModel group="2" contactStiffness="10" />
+					<PointCollisionModel group="2" contactStiffness="10"/>
+					<RigidMapping name="MM->CM mapping1" input="@../../instrumentState" output="@instrumentCollisionState" />
+			</Node>
+		</Node>
+		
+		<Node name="collisionBlade">
+			<MechanicalObject template="Vec3d" name="Particle"  position="0.2 0.2 0.1" />
+			<PointCollisionModel group="3" name="ParticleModel" contactStiffness="2"  />
+			<RigidMapping template="Rigid3,Vec3d" name="MM->CM mapping"  input="@../instrumentState"  output="@Particle" />
+		</Node>
+	</Node> 
+</Node>
+

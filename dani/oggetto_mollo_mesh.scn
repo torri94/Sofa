@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<Node name="root" dt="0.02" gravity="0 0 -9.81">
+	<RequiredPlugin name="SofaOpenglVisual"/>
+	<VisualStyle displayFlags="showBehaviorModels showForceFields" />
+	<DefaultPipeline verbose="0" draw="0" />
+	<BruteForceDetection name="N2" />
+	<MinProximityIntersection name="Proximity" alarmDistance="0.8" contactDistance="0.5" />
+	<DefaultContactManager name="Response" response="default" />
+	<Node name="tetrahedral mesh">
+
+		<EulerImplicitSolver name="cg_odesolver" printLog="0"  rayleighStiffness="0.1" rayleighMass="0.1" />
+		<CGLinearSolver template="GraphScattered" name="linear solver" iterations="40" tolerance="1e-09" threshold="1e-09" />
+		<MechanicalObject template="Vec3d" name="Hexa" scale3d="1 1 1"/>
+		<RegularGridTopology name="grid" n="10 10 5" min="-10 -10 -10" max="10 10 10" p0="-10 -10 -10" />
+		<HexahedronSetTopologyContainer name="Container" src="@grid"/>
+		<HexahedronSetGeometryAlgorithms />
+		<HexahedronFEMForceField template="Vec3d" name="FEM" poissonRatio="0.45" youngModulus="2000" />
+		<PointCollisionModel name="Points" />
+		<LineCollisionModel name="Lines" />
+		<TriangleCollisionModel template="Vec3d" name="Triangles" />
+		<DiagonalMass template="Vec3d" name="Mass" massDensity="2.0" />
+		<PlaneForceField template="Vec3d" name="Plane" normal="0 0 1" d="-10" />
+
+		<Node name="surface">
+
+			<QuadSetTopologyContainer name="Container"/>
+			<QuadSetTopologyModifier name="Modifier"/>
+			<QuadSetTopologyAlgorithms name="TopoAlgo"/>
+			<Hexa2QuadTopologicalMapping name="Mapping" input="@../Container" output="@Container"/>
+
+			<Node name="Triangles Mesh" gravity="0 -9.81 0">
+				<TriangleSetTopologyContainer name="Container" />
+				<TriangleSetTopologyModifier name="Modifier" />
+				<TriangleSetTopologyAlgorithms template="Vec3d" name="TopoAlgo" />
+				<TriangleSetGeometryAlgorithms template="Vec3d" name="GeomAlgo" />
+				<Quad2TriangleTopologicalMapping name="default8" input="@../Container" output="@Container" />
+				<Node name="visualSurface">
+
+					<OglModel template="Vec3d" name="Visual" color="1 0.75 0.796" material="Default Diffuse 1 0 0 1 1 Ambient 1 0 0 0.2 1 Specular 0 0 0 1 1 Emissive 0 0 0 1 1 Shininess 0 45" />
+					<IdentityMapping  template="Vec3d,ExtVec3f" input="@.." output="@Visual"/>
+
+				</Node>
+			</Node>
+		</Node>
+	</Node>
+</Node>

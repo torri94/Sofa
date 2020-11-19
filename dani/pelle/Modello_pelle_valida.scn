@@ -1,0 +1,46 @@
+<?xml version="1.0" ?>
+<Node name="root" dt="0.1" gravity="0 0 -9.81 " >
+    <RequiredPlugin name="SofaOpenglVisual"/>
+    <RequiredPlugin pluginName='SofaHaptics'/>
+	<RequiredPlugin pluginName='SofaMiscCollision'/>
+	<RequiredPlugin pluginName='SofaSparseSolver'/>
+    <VisualStyle displayFlags="hideBehaviorModels hideCollisionModels hideMappings hideForceFields" />
+    
+    
+    <DefaultPipeline name="pipeline" depth="6" verbose="0"/>
+    <BruteForceDetection name="detection" />
+    <DefaultContactManager name="response" response="FrictionContact" />
+    <LocalMinDistance name="proximity" alarmDistance="0.15" contactDistance="0.05" angleCone="0.0" />
+    
+	<Node name="Hexahedra Mesh">
+
+		<MeshObjLoader name="Loader" filename="mesh/cube_low_res.obj"/>
+		<MechanicalObject template="Vec3d" src="@Loader" name="Volume"/>
+		
+		<EulerImplicitSolver name="cg_odesolver" printLog="0"  rayleighStiffness="0.1" rayleighMass="0.1" />
+		<CGLinearSolver template="GraphScattered" name="linear solver" iterations="40" tolerance="1e-09" threshold="1e-09" />
+		
+		<TetrahedronSetTopologyContainer name="Container" src="@Loader" />
+		<TetrahedronSetTopologyModifier name="Modifier" />
+		<TetrahedronSetTopologyAlgorithms template="Vec3d" name="TopoAlgo" />
+		<TetrahedronSetGeometryAlgorithms template="Vec3d" name="GeoAlgo" />
+		<TetrahedralCorotationalFEMForceField template="Vec3d" name="FEM" method="large" poissonRatio="0.3" youngModulus="360" assembling="0" />
+		<DiagonalMass template="Vec3d" name="default1" massDensity="2.0" />
+		<FixedConstraint template="Vec3d" name="Fixed Dofs" indices="0 4 20 24  70 74" drawSize="0" />
+		<FixedPlaneConstraint template="Vec3d" name="defaultPlane" direction="0 0 1" dmin="-15"/>
+		
+		<Node name="Triangles Mesh" gravity="0 -9.81 0">
+			<TriangleSetTopologyContainer name="Container" />
+			<TriangleSetTopologyModifier name="Modifier" />
+			<TriangleSetTopologyAlgorithms template="Vec3d" name="TopoAlgo" />
+			<TriangleSetGeometryAlgorithms template="Vec3d" name="GeomAlgo" />
+			<Tetra2TriangleTopologicalMapping name="Mapping" input="@../Container" output="@Container" />
+			<TriangularBendingSprings template="Vec3d" name="FEM-Bend" stiffness="200" damping="1" />
+			<TriangleCollisionModel name="Models" />
+			<Node name="Visu">
+				<OglModel template="ExtVec3f" name="Visual" color="1 0.75 0.796" material="Default Diffuse 1 0 0 1 1 Ambient 1 0 0 0.2 1 Specular 0 0 0 1 1 Emissive 0 0 0 1 1 Shininess 0 45 "/>
+				<IdentityMapping template="Vec3d,ExtVec3f" name="default12" input="@../../Volume" output="@Visual" />
+			</Node>
+		</Node>
+	</Node>
+</Node>

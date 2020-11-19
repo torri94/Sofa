@@ -1,0 +1,37 @@
+<?xml version="1.0" ?>
+<Node name="root" dt="0.1" gravity="0 0 0 " >
+    <RequiredPlugin name="SofaOpenglVisual"/>
+    <RequiredPlugin pluginName='SofaHaptics'/>
+	<RequiredPlugin pluginName='SofaSparseSolver'/>
+    <VisualStyle displayFlags="hideBehaviorModels hideCollisionModels hideMappings hideForceFields" />
+    <RequiredPlugin name="Geomagic plugin" pluginName="Geomagic" />
+    
+    <DefaultPipeline name="pipeline" depth="6" verbose="0"/>
+    <BruteForceDetection name="detection" />
+    <DefaultContactManager name="response" response="FrictionContact" />
+    <LocalMinDistance name="proximity" alarmDistance="0.15" contactDistance="0.05" angleCone="0.0" />
+    <Node name="SquareGravity">
+        <EulerImplicitSolver name="cg_odesolver" printLog="false"  rayleighStiffness="0.1" rayleighMass="0.1" />
+        <CGLinearSolver iterations="25" name="linear solver" tolerance="1.0e-9" threshold="1.0e-9" />
+		
+		<MechanicalObject template="Vec3d" name="Hexa" scale3d="2 1 0.2" position="0 0 8"/>
+		<RegularGridTopology name="grid" n="10 10 2" min="-10 -10 -10" max="10 10 10" p0="-10 -10 -10" />
+        
+		<include href="Objects/TriangleSetTopology.xml" src="@grid" />
+        
+        <DiagonalMass massDensity="0.15" />
+        
+		<FixedConstraint template="Vec3d" name="Fixed Dofs" indices="0 4 20 24  70 74" drawSize="0" />
+		<FixedPlaneConstraint template="Vec3d" name="defaultPlane" direction="0 0 1" dmin="-15"/>
+		
+		<TriangularFEMForceField name="FEM" youngModulus="1000" poissonRatio="0" method="large" />
+        <TriangularBendingSprings name="FEM-Bend" stiffness="2000" damping="10" />
+        <TriangleCollisionModel />
+		<Node name="visual">
+			<OglModel name="VisualCube" color="red"/>
+			<IdentityMapping input="@.." output="@VisualCube"/>
+		</Node>
+
+	</Node>
+
+</Node>

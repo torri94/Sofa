@@ -1,0 +1,119 @@
+<?xml version="1.0" ?>
+<Node name="root" dt="0.01" gravity="0 0 -9.81">
+	<RequiredPlugin name="SofaOpenglVisual"/>
+	<RequiredPlugin name='SofaHaptics'/>
+	<RequiredPlugin name="Geomagic plugin" pluginName="Geomagic"/>
+	<VisualStyle displayFlags="hideBehaviorModels hideCollisionModels hideMappings hideForceFields"/>
+
+	<DefaultPipeline name="pipeline" verbose="0" depth="6"/>
+	<BruteForceDetection name="detection"/>
+	<LocalMinDistance name="proximity" alarmDistance="0.15" contactDistance="0.05"/>
+	<DefaultContactManager name="response" response="FrictionContact"/>
+	<!--<FreeMotionAnimationLoop/>
+
+	<LCPConstraintSolver tolerance="0.001" maxIt="1000"/>
+	<GeomagicDriver name="GeomagicDevice" deviceName="Default Device" scale="1" drawDeviceFrame="1" positionBase="0 0 0" orientationBase="0 0.707 0 -0.707" />
+-->
+	<Node name="cube">
+		<EulerImplicitSolver name="cg_odesolver" printLog="0"  rayleighStiffness="0.1" rayleighMass="0.1" />
+		<CGLinearSolver template="GraphScattered" name="linear solver" iterations="25" tolerance="1e-09" threshold="1e-09" />
+		<MeshObjLoader name="MeshCube" filename="mesh/cube.obj" handleSeams="1"/>
+		<RegularGridTopology name="grid" n="10 10 10" min="-10 -10 -10" max="10 10 10" p0="-10 -10 -10" src="@MeshCube" />
+		<TetrahedronSetTopologyContainer name="Container" src="@grid"/>
+		<MechanicalObject name="Volume"/>
+		<TetrahedronSetGeometryAlgorithms name="GeomAlgo" drawTetrahedra="0" drawColorTetrahedra="1.0 1.0 0.3 1.0"/>
+		<TetrahedralCorotationalFEMForceField  template="Vec3d" name="FEM" method="large" poissonRatio="0.45" youngModulus="2000" assembling="0"/>
+		<DiagonalMass template="Vec3d" name="Mass" massDensity="2.0" />
+		
+		<FixedPlaneConstraint template="Vec3d" name="defaultPlane" direction="0 0 1" dmin="-0.1" dmax="0.1"/>
+
+		<Node name="Triangle Mesh">
+			<TriangleSetTopologyContainer name="Container"/>
+			<!-- mettiamo le topologies-->
+			<TriangleSetTopologyModifier name="Modifier"/>
+			<!-- mi modifica le topologie all'interno di un container-->
+			<TriangleSetGeometryAlgorithms name="GeomAlg"/>
+			<TriangleSetTopologyAlgorithms  name="TopoAlgo" />
+			<!-- mostra le topologie -->
+			<Tetra2TriangleTopologicalMapping name="Mapping" input="@../Container" output="@Container" />
+			<!-- qui vado a modificare il mio container, lo vado a riempire, quindi devo dare i permessi alle modifiche -->
+			<TriangularBendingSprings name="FEM-Bend" stiffness="10" damping="1"/>
+			<TriangleCollisionModel name="Models"/>
+			<Node name="visualization">
+
+				<OglModel name="Visual" material="Default Diffuse 1 0 0 1 1 Ambient 1 0 0 0.2 1 Specular 0 0 0 1 1 Emissive 0 0 0 1 1 Shininess 0 45" />
+				<!-- qui creo l'oggetto della visualizzazione -->
+				<IdentityMapping input="@../../Volume" output="@Visual"/>
+				<!-- qui vado a riempire l'oggetto della visualizzazione con il mio oggetto fisico-->
+			</Node>
+
+		</Node>
+	</Node>
+<!--
+	<Node name="Omni">
+		<MechanicalObject template="Rigid3d" name="DOFs" position="@GeomagicDevice.positionDevice"/>
+		<MechanicalStateController template="Rigid3d" listening="true" mainDirection="-1.0 0.0 0.0" handleEventTriggersUpdate="true"/>
+		<Node name="VisuAvatar" activated="false" >
+			<MeshObjLoader name="meshLoader_1" filename="mesh/sphere.obj" scale="0.1" handleSeams="1" />
+			<OglModel name="Visual" src="@meshLoader_1" color="gray"/>
+			<RigidMapping input="@.." output="@Visual" index="0"/>
+		</Node>
+		<Node name="RefModel">
+			<MeshObjLoader filename="Demos/Dentistry/data/mesh/dental_instrument_centerline.obj"  name="loader"/>
+			<MeshTopology src="@loader"  />
+			<MechanicalObject src="@loader" name="instrumentRefState1" ry="-180" rz="-90" dz="3.5" dx="-0.3" />
+			<RigidMapping />
+		</Node>
+		<Node name="RefModelRight" >
+			<MeshObjLoader filename="Demos/Dentistry/data/mesh/dental_instrument_centerline.obj"  name="loader"/>
+			<MeshTopology src="@loader"  />
+			<MechanicalObject src="@loader" name="instrumentRefState2" ry="-180" rz="-90" dz="3.5" dx="-0.3" dy="0.5" />
+			<RigidMapping />
+		</Node>
+		<Node name="RefModelLeft" >
+			<MeshObjLoader filename="Demos/Dentistry/data/mesh/dental_instrument_centerline.obj"  name="loader"/>
+			<MeshTopology src="@loader"  />
+			<MechanicalObject src="@loader" name="instrumentRefState3" ry="-180" rz="-90" dz="3.5" dx="-0.3" dy="-0.5" />
+			<RigidMapping />
+		</Node>
+	</Node>
+
+	<Node name="Instrument" >
+		<EulerImplicitSolver name="ODE solver" rayleighStiffness="0.05" rayleighMass="1.0" />
+		<CGLinearSolver name="linear solver" iterations="25" tolerance="1e-10" threshold="10e-10" />
+		<MechanicalObject name="instrumentState" template="Rigid3d" />
+		<UniformMass name="mass" totalMass="0.01" />
+		<LCPForceFeedback activate="true" forceCoef="1.0"/>
+		
+		<UncoupledConstraintCorrection/>
+		<Node name="VisualModel" >
+			<MeshObjLoader name="meshLoader_2" filename="Demos/Dentistry/data/mesh/dental_instrument.obj" handleSeams="1" />
+			<OglModel name="InstrumentVisualModel" src="@meshLoader_2" color="1.0 0.2 0.2 1.0" ry="-180" rz="-90" dz="3.5" dx="-0.3"/>
+			<RigidMapping input="@instrumentState" output="@InstrumentVisualModel" />
+		</Node>
+		<Node name="CollisionModel" >
+			<MeshObjLoader filename="Demos/Dentistry/data/mesh/dental_instrument_centerline.obj"  name="loader"/>
+			<MeshTopology src="@loader" />
+			<MechanicalObject src="@loader" name="instrumentCollisionState1"  ry="-180" rz="-90" dz="3.5" dx="-0.3" />
+			<LineCollisionModel contactStiffness="1" />
+			<PointCollisionModel contactStiffness="1" />
+			<RigidMapping  input="@instrumentState" output="@instrumentCollisionState1" />
+		</Node>
+		<Node name="RefModelRight" >
+			<MeshObjLoader filename="Demos/Dentistry/data/mesh/dental_instrument_centerline.obj"  name="loader"/>
+			<MeshTopology src="@loader" />
+			<MechanicalObject src="@loader" name="instrumentCollisionState2"  ry="-180" rz="-90" dz="3.5" dx="-0.3" dy="0.5" />
+			<RigidMapping input="@instrumentState" output="@instrumentCollisionState2" />
+		</Node>
+		<Node name="RefModelLeft" >
+			<MeshObjLoader filename="Demos/Dentistry/data/mesh/dental_instrument_centerline.obj"  name="loader"/>
+			<MeshTopology src="@loader"  />
+			<MechanicalObject src="@loader" name="instrumentCollisionState3"  ry="-180" rz="-90" dz="3.5" dx="-0.3" dy="-0.5" />
+			<RigidMapping input="@instrumentState" output="@instrumentCollisionState3" />
+		</Node>
+		<VectorSpringForceField  template="Vec3d" object1="@Omni/RefModel/instrumentRefState1" object2="@Instrument/CollisionModel/instrumentCollisionState1" stiffness="10" viscosity="0" />
+		<VectorSpringForceField  template="Vec3d" object1="@Omni/RefModelRight/instrumentRefState2" object2="@Instrument/RefModelRight/instrumentCollisionState2" stiffness="10" viscosity="0" />
+		<VectorSpringForceField  template="Vec3d" object1="@Omni/RefModelLeft/instrumentRefState3" object2="@Instrument/RefModelLeft/instrumentCollisionState3" stiffness="10" viscosity="0" />
+	</Node>
+-->
+</Node>

@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<Node animate="0" gravity="0 0.1 0"  >
+	<RequiredPlugin name="SofaOpenglVisual"/>
+	<RequiredPlugin pluginName='SofaSparseSolver'/>
+	<VisualStyle displayFlags="showMapping" />
+	<DefaultPipeline verbose="0" />
+	<BruteForceDetection name="N2" />
+	<DefaultContactManager response="default" />
+	<MinProximityIntersection name="Proximity" alarmDistance="2" contactDistance="1" />
+
+	<!--   
+    <Node name="CutEdges">
+      <MeshTopology position="-0.2745 -2.7482 -40.7508    -0.2760 -1.5256 -40.7505    -0.2775 -0.3030 -40.4702    -0.2790 0.9196 -40.4699" edges="0 1 1 2 2 3" />
+      <MechanicalObject name="vertices" />
+      <LineCollisionModel name="CM" group="1" simulated="0" moving="1" contactStiffness="0" />
+      <RigidMapping index="0" />
+
+    </Node>-->
+	<Node name="Instrument" >
+		<EulerImplicitSolver name="ODE solver" rayleighStiffness="0.01" rayleighMass="0.01" />
+		<SparseLDLSolver />
+
+		<MechanicalObject name="instrumentState" template="Rigid3" />
+		<UniformMass name="mass" totalMass="0.5" />
+		<MeshObjLoader name="loaderPince" filename="mesh/scalple_buono.obj" triangulate="1" />
+
+		<!--<Node name="CutEdges">
+
+			<MeshTopology position="-0.5555 -11 18.8525   -0.5555 -10.30 19.4    " edges="0 1 1 2 2 3" />
+			<MeshObjLoader name="blade" filename="mesh/blade_scalple.obj"/>
+			<MechanicalObject name="vertices" src="@blade"/>
+			<LineCollisionModel name="CM" group="1" simulated="0" moving="1" contactStiffness="0" />
+			<RigidMapping index="0" />
+
+		</Node>-->
+		
+		<Node name="GrabVisualL">
+			<!--<MeshObjLoader name="meshLoader_1" filename="mesh/scalple_buono.obj" handleSeams="1" />-->
+			<MeshSTLLoader name="STLLoader" filename="mesh/Scalpel.stl" printLog="true" flipNormals="0" />
+			
+			<OglModel name="InstrumentVisualModel" src="@STLLoader" ry="-180" rz="-90" dz="3.5" dx="-0.3" texturename="textures/scalpe.png"/>
+			<RigidMapping name="MM->VM mapping" input="@instrumentState" output="@InstrumentVisualModel" />
+
+		</Node>
+		<Node name="CollisionModel">
+			<MeshSTLLoader name="STLLoader" filename="mesh/Scalpel.stl" printLog="true" flipNormals="0" />
+			<MeshTopology src="@STLLoader" name="InstrumentCollisionModel" />
+			<MechanicalObject src="@STLLoader" name="instrumentCollisionState"  ry="-180" rz="-90" dz="3.5" dx="-0.3" />
+			<LineCollisionModel contactStiffness="100" group="1" simulated="0" moving="1"/>
+			<PointCollisionModel contactStiffness="100" group="1" simulated="0" moving="1"/>
+			<TriangleCollisionModel template="Vec3d" name="Triangles" />
+			<RigidMapping name="MM->CM mapping" input="@instrumentState" output="@instrumentCollisionState" />
+		</Node>
+	</Node>
+</Node>
+
