@@ -1,0 +1,92 @@
+<?xml version="1.0" ?>
+<Node name="root" dt="0.1" gravity="0 0 0" >
+    <RequiredPlugin name="SofaOpenglVisual"/>
+    <RequiredPlugin pluginName='SofaHaptics'/>
+	  <RequiredPlugin pluginName='SofaSparseSolver'/>
+    <RequiredPlugin pluginName='SofaGeneralDeformable'/>
+    <RequiredPlugin pluginName='SofaBoundaryCondition'/>
+    <RequiredPlugin pluginName='SofaTopologyMapping'/>
+    <VisualStyle displayFlags="hideBehaviorModels hideCollisionModels hideMappings hideForceFields showBehaviorModels" />
+    <RequiredPlugin name="Geomagic plugin" pluginName="Geomagic" />
+    
+    <DefaultPipeline name="pipeline" depth="6" verbose="0"/>
+    <BruteForceDetection name="detection" />
+    <DefaultContactManager name="response" response="FrictionContact" />
+    <LocalMinDistance name="proximity" alarmDistance="0.15" contactDistance="0.05" angleCone="0.0" />
+    <FreeMotionAnimationLoop/>
+    <LCPConstraintSolver tolerance="0.001" maxIt="1000"/>
+    <GeomagicDriver name="GeomagicDevice" deviceName="Default Device" scale="1" drawDeviceFrame="0" positionBase="0 0 8" drawDevice="0" orientationBase="0.707 0 0 0.707"  />
+
+  
+	<Node name="Hexahedra Mesh">
+    <EulerImplicitSolver rayleighMass="0.01" rayleighStiffness="0.1" />
+    <SparseLDLSolver />
+    
+		<MechanicalObject template="Vec3d" name="Hexa" scale3d="3 1.5 0.2" position="0 0 8"/>
+    <RegularGridTopology name="grid" n="20 20 2" min="-10 -10 -10" max="10 10 10" p0="-10 -10 -10" />
+		<HexahedronSetGeometryAlgorithms />
+		<DiagonalMass template="Vec3d" name="Mass" massDensity="2.0" />
+		<HexahedronFEMForceField template="Vec3d" name="FEM" poissonRatio="0.45" youngModulus="2000" />
+    <LinearSolverConstraintCorrection />
+		
+
+		<!--<FixedConstraint template="Vec3d" name="Fixed Dofs" indices="0 1 3 5 7 9 10 19 20 29 30 39 40 49 50 59 60 69 70 79 80 89 91 93 95 97 99 100 101 103 105 107 109 110 119 120 129 130 139 140 149 150 159 160 169 170 179 180 189 190 191 193 195 197 199 " drawSize="0" />
+    -->
+    <!-- indici se i punti sono 10 10 2
+    0 1 3 5 7 9 10 19 20 29 30 39 40 49 50 59 60 69 70 79 80 89 91 93 95 97 99 100 101 103 105 107 109 110 119 120 129 130 139 140 149 150 159 160 169 170 179 180 189 190 191 193 195 197 199-->
+      <!--<FixedPlaneConstraint template="Vec3d" name="defaultPlane" direction="0 0 1" dmin="-15"/>-->
+    <!-- 4 20 24 70 74 -->
+    <FixedConstraint template="Vec3d" name="Fixed Dofs" indices="0 1 3 5 7 9 11 13 15 17 19 40 80 120 160 200 240 280 320 360 380 381 383 385 387 391 393 395 397 399 400 401 403 405 407 409 411 413 415 417 419 440 480 520 560 600 640 680 720 760 780 781 783 785 787 789 791 793 795 797 799" drawSize="0" />	
+    <Node name="Quad Mesh">
+			<QuadSetTopologyContainer name="Container" />
+			<QuadSetTopologyModifier name="Modifier" />
+			<QuadSetTopologyAlgorithms template="Vec3d" name="TopoAlgo" />
+			<QuadSetGeometryAlgorithms template="Vec3d" name="GeomAlgo" />
+			<Hexa2QuadTopologicalMapping name="default6" input="@../grid" output="@Container" />
+			<Node name="Triangles Mesh" gravity="0 -9.81 0">
+				<TriangleSetTopologyContainer name="Container" />
+				<TriangleSetTopologyModifier name="Modifier" />
+				<TriangleSetTopologyAlgorithms template="Vec3d" name="TopoAlgo" />
+				<TriangleSetGeometryAlgorithms template="Vec3d" name="GeomAlgo" />
+				<Quad2TriangleTopologicalMapping name="default8" input="@../Container" output="@Container" />
+				<TriangularBendingSprings template="Vec3d" name="FEM-Bend" stiffness="200" damping="1" />
+				<TriangleCollisionModel name="default9" />
+				<Node name="Visu">
+					<OglModel template="ExtVec3f" name="Visual" color="1 0.75 0.796" material="Default Diffuse 1 0 0 1 1 Ambient 1 0 0 0.2 1 Specular 0 0 0 1 1 Emissive 0 0 0 1 1 Shininess 0 45 "/>
+					<IdentityMapping template="Vec3d,ExtVec3f" name="default12" input="@.." output="@Visual" />
+				</Node>
+			</Node>
+		</Node>
+	</Node>
+    <Node name="Omni">
+        <MechanicalObject template="Rigid3" name="DOFs" position="@GeomagicDevice.positionDevice"/>
+        <MechanicalStateController template="Rigid3" listening="true" mainDirection="-1.0 0.0 0.0" handleEventTriggersUpdate="true"/>
+    </Node>
+	
+	<Node name="Instrument" >
+        <EulerImplicitSolver name="ODE solver" rayleighStiffness="0.01" rayleighMass="0.01" />
+        <SparseLDLSolver />
+        
+		<MechanicalObject name="instrumentState" template="Rigid3" />
+		<UniformMass name="mass" totalMass="0.5" />
+		
+		<RestShapeSpringsForceField stiffness='1000' angularStiffness='1000' external_rest_shape='@../Omni/DOFs' points='0' external_points='0'/>
+        <LCPForceFeedback name="LCPFF1" activate="true" forceCoef="0.1"/> 
+        <LinearSolverConstraintCorrection />
+		
+		<Node name="VisuTool" >
+            <MeshObjLoader name="meshLoader_1" filename="Demos/Dentistry/data/mesh/dental_instrument.obj" handleSeams="1" />
+            <OglModel name="InstrumentVisualModel" src="@meshLoader_1" color="1.0 0.2 0.2 1.0" ry="-180" rz="-90" dz="3.5" dx="-0.3"/>
+            <RigidMapping name="MM->VM mapping" input="@instrumentState" output="@InstrumentVisualModel" />
+        </Node>
+		
+        <Node name="CollisionModel" >
+            <MeshObjLoader filename="Demos/Dentistry/data/mesh/dental_instrument_centerline.obj"  name="loader"/>
+            <MeshTopology src="@loader" name="InstrumentCollisionModel" />
+            <MechanicalObject src="@loader" name="instrumentCollisionState"  ry="-180" rz="-90" dz="3.5" dx="-0.3" />
+            <LineCollisionModel contactStiffness="10"/>			
+            <PointCollisionModel contactStiffness="10"/>
+            <RigidMapping name="MM->CM mapping" input="@instrumentState" output="@instrumentCollisionState" />		
+        </Node>       
+    </Node> 
+</Node>
