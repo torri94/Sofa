@@ -1,0 +1,100 @@
+<?xml version="1.0" ?>
+<Node name="root" dt="0.1" showBoundingTree="0" gravity="0 0 0" >
+	<RequiredPlugin name="Carving" pluginName="SofaCarving" />
+	<RequiredPlugin name="SofaOpenglVisual"/>
+    <RequiredPlugin pluginName='SofaHaptics'/>
+	<RequiredPlugin pluginName='SofaSparseSolver'/>
+	<RequiredPlugin pluginName='SofaMiscCollision'/>
+	<VisualStyle displayFlags="showCollisionModels" />
+	<RequiredPlugin name="Geomagic plugin" pluginName="Geomagic" />
+    
+    <DefaultPipeline name="pipeline" depth="6" verbose="0"/>
+    <BruteForceDetection name="detection" />
+    <DefaultContactManager name="response" response="FrictionContact" />
+	<DefaultContactManager name="response2" response="default" />
+    <MinProximityIntersection name="Proximity" alarmDistance="1" contactDistance="0.05"/>
+
+	<!--<CarvingManager active="false" carvingDistance="0.0"/>-->
+	
+
+	<FreeMotionAnimationLoop/>
+	<LCPConstraintSolver tolerance="0.01" maxIt="100"/>
+	<GeomagicDriver name="GeomagicDevice" deviceName="Default Device" scale="1" positionBase="0 0 8" orientationBase="0.707 0 0 0.707"
+	  drawDevice="0" drawDeviceFrame="0" forceFeedBack="@Instrument/LCPFF1"/>
+	
+	<Node name="Mesh">
+		<EulerImplicitSolver name="cg_odesolver"  />
+		<CGLinearSolver name="linear solver" iterations="25" tolerance="1e-09" threshold="1e-09" />
+		
+		<MeshGmshLoader name="loader" filename="mesh/dio.msh" createSubelements="true"/>
+        <MechanicalObject src="@loader" name="default4" scale3d="7 4 5"/>
+		
+		<TriangleSetTopologyContainer src="@loader" name="Triangle_topo" />
+        <TriangleSetTopologyModifier name="Modifier" />
+        <TriangleSetTopologyAlgorithms name="TopoAlgo" />
+        <TriangleSetGeometryAlgorithms name="GeomAlgo" />
+        <DiagonalMass name="default5" massDensity="1.5" />
+		<TriangularFEMForceField template="Vec3d" name="FEM" youngModulus="20000000" poissonRatio="0.45" />
+    <TriangularBendingSprings template="Vec3d" name="FEM-Bend" stiffness="10000000" damping="1" />
+
+    <!---->
+		<PrecomputedConstraintCorrection recompute="true"/>
+
+		
+		<TriangleCollisionModel name="default7"/>
+
+		<FixedConstraint template="Vec3d" name="Fixed Dofs" indices="0 4 20 24  70 74" drawSize="0" />
+		<FixedPlaneConstraint template="Vec3d" name="defaultPlane" direction="0 0 1" dmin="-15"/>
+		
+			<Node name="edges">
+            <EdgeSetTopologyContainer name="Edge_topo" />
+            <EdgeSetTopologyModifier name="Modifier" />
+            <EdgeSetTopologyAlgorithms template="Vec3d" name="TopoAlgo" />
+            <EdgeSetGeometryAlgorithms template="Vec3d" name="GeomAlgo" drawEdges="1" />
+            <Triangle2EdgeTopologicalMapping name="Mapping" input="@../Triangle_topo" output="@Edge_topo" />
+        </Node>
+
+        <Node >
+			<OglModel name="Visual" material="Default Diffuse 1 0 1 0 0.75 Ambient 0 1 1 1 1 Specular 1 1 1 0 1 Emissive 0 1 1 0 1 Shininess 1 100"/>
+            <IdentityMapping name="default8" input="@.." output="@Visual" />
+        </Node>
+		
+	</Node>
+    <Node name="Omni">
+        <MechanicalObject template="Rigid3" name="DOFs" position="@GeomagicDevice.positionDevice"/>
+        <MechanicalStateController template="Rigid3" listening="true" mainDirection="-1.0 0.0 0.0" handleEventTriggersUpdate="true"/>
+    </Node>
+	
+	<Node name="Instrument" >
+        <EulerImplicitSolver name="ODE solver" rayleighStiffness="0.01" rayleighMass="0.01" />
+        <SparseLDLSolver />
+        
+		<MechanicalObject name="instrumentState" template="Rigid3" />
+		<UniformMass name="mass" totalMass="0.5" />
+		
+		<RestShapeSpringsForceField stiffness='1' angularStiffness='1' external_rest_shape='@../Omni/DOFs' points='0' external_points='0'/>
+        <LCPForceFeedback name="LCPFF1" activate="true" forceCoef="1"/> 
+        <LinearSolverConstraintCorrection />
+
+		<Node name="VisuTool" >
+			<MeshObjLoader name="meshLoader_1" filename="Demos/Dentistry/data/mesh/dental_instrument.obj" handleSeams="1" />
+			<OglModel name="InstrumentVisualModel" src="@meshLoader_1" color="1.0 0.2 0.2 1.0" ry="-180" rz="-90" dz="3.5" dx="-0.3"/>
+			<RigidMapping name="MM->VM mapping" input="@instrumentState" output="@InstrumentVisualModel" />
+			<Node name="CollisionModelInstrument" >
+				<MeshObjLoader filename="Demos/Dentistry/data/mesh/dental_instrument_centerline.obj"  name="loader"/>
+				<MeshTopology src="@loader" name="InstrumentCollisionModel" />
+				<MechanicalObject src="@loader" name="instrumentCollisionState"  ry="-180" rz="-90" dz="3.5" dx="-0.3" />
+				<LineCollisionModel group="2" contactStiffness="10" />
+				<PointCollisionModel group="2" contactStiffness="10"/>
+				<RigidMapping name="MM->CM mapping1" input="@../../instrumentState" output="@instrumentCollisionState" />
+			</Node>
+		</Node>
+
+		<!--<Node name="collisionBlade">
+			<MechanicalObject template="Vec3d" name="Particle"  position="0.2 0.2 0.1" />
+			<PointCollisionModel group="3" name="ParticleModel" contactStiffness="2" />
+			<RigidMapping template="Rigid3,Vec3d" name="MM->CM mapping"  input="@../instrumentState"  output="@Particle" />
+		</Node> -->
+	</Node>
+</Node>
+
