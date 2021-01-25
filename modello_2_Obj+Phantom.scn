@@ -9,20 +9,25 @@
     <DefaultPipeline name="pipeline" depth="6" verbose="0"/>
     <BruteForceDetection name="detection" />
     <DefaultContactManager name="response" response="FrictionContact" />
-    <LocalMinDistance name="proximity" alarmDistance="0.7" contactDistance="0.05" angleCone="0.0" />
+    <LocalMinDistance name="proximity" alarmDistance="1" contactDistance="0.08" angleCone="0.0" />
 	<FreeMotionAnimationLoop/>
 	<LCPConstraintSolver tolerance="0.001" maxIt="1000"/>
 	<GeomagicDriver name="GeomagicDevice" deviceName="Default Device" scale="1" drawDeviceFrame="0" positionBase="0 0 8" drawDevice="0" orientationBase="0.707 0 0 0.707"  />
 
+	
+	
+	
+	
+	
 	<Node name="Hexahedra Mesh">
 		<EulerImplicitSolver name="ODE solver" rayleighStiffness="0.01" rayleighMass="0.01" />
 		<SparseLDLSolver />
 		
 		<MechanicalObject template="Vec3d" name="Hexa" scale3d="2 1 0.2" position="0 0 -8"/>
-		<RegularGridTopology name="grid" n="10 10 2" min="-10 -10 -10" max="10 10 10" p0="-10 -10 -10" />
+		<RegularGridTopology name="grid" n="20 20 2" min="-10 -10 -10" max="10 10 10" p0="-10 -10 -10" />
 		<HexahedronSetGeometryAlgorithms />
 		<DiagonalMass template="Vec3d" name="Mass" massDensity="2.0" />
-		<HexahedronFEMForceField template="Vec3d" name="FEM" poissonRatio="0.45" youngModulus="2000" />
+		<HexahedronFEMForceField template="Vec3d" name="FEM" poissonRatio="0.45" youngModulus="500" />
 		<LinearSolverConstraintCorrection />
 
 		<FixedConstraint template="Vec3d" name="Fixed Dofs" indices="0 4 20 24  70 74" drawSize="0" />
@@ -56,7 +61,7 @@
 		
 		<MeshGmshLoader name="loader2" filename="mesh/sfera.msh" />
 			
-		<MechanicalObject  name="Volume" src="@loader2" scale3d="1.7 1.7 1.7" translation="1 1 0.3" />
+		<MechanicalObject  name="Volume" src="@loader2" scale3d="1.7 1.7 1.7" translation="1 1 0" />
 		
 		<TetrahedronSetTopologyContainer name="Topology Container" src="@loader2" />
 		<TetrahedronSetTopologyModifier name="Topology Modifier" />
@@ -67,10 +72,10 @@
 
 		<DiagonalMass template="Vec3d" name="Mass" massDensity="2.0" />
 
-		<TetrahedronFEMForceField method="polar" youngModulus="1000" poissonRatio="0.45" />
+		<TetrahedronFEMForceField method="polar" youngModulus="2000" poissonRatio="0.45" />
 		<LinearSolverConstraintCorrection />
 		
-		<FixedConstraint template="Vec3d" name="Fixed Dofs" indices="0 4 20 24  70 74" drawSize="1" />
+		<FixedConstraint template="Vec3d" name="Fixed Dofs" indices=" 4 20 24  70 74" drawSize="1" />
 		<!--<FixedPlaneConstraint template="Vec3d" name="Plane" direction="0 0 1" d="0"/>-->
 		<PlaneForceField template="Vec3d" name="Plane" normal="0 0 1"  d="-1" />
 
@@ -98,7 +103,7 @@
 		<UniformMass name="mass" totalMass="0.5" />
 		
 		<RestShapeSpringsForceField stiffness='1000' angularStiffness='1000' external_rest_shape='@../Omni/DOFs' points='0' external_points='0'/>
-        <LCPForceFeedback name="LCPFF1" activate="true" forceCoef="0.01"/> 
+        <LCPForceFeedback name="LCPFF1" activate="true" forceCoef="0.1"/> 
         <LinearSolverConstraintCorrection />
 		
 		<Node name="VisuTool" >
