@@ -3,13 +3,13 @@
 	<RequiredPlugin name="SofaOpenglVisual"/>
 	<RequiredPlugin pluginName='SofaHaptics'/>
 	<RequiredPlugin pluginName='SofaSparseSolver'/>
-	<VisualStyle displayFlags="hideBehaviorModels hideCollisionModels hideMappings hideForceFields " />
+	<VisualStyle displayFlags="hideBehaviorModels hideCollisionModels hideMappings hideForceFields showBehavior" />
 	<RequiredPlugin name="Geomagic plugin" pluginName="Geomagic" />
 
 	<DefaultPipeline name="pipeline" depth="6" verbose="0"/>
 	<BruteForceDetection name="detection" />
 	<DefaultContactManager name="response" response="FrictionContact" />
-	<LocalMinDistance name="proximity" alarmDistance="2.5" contactDistance="0.22" angleCone="0.0" />
+	<LocalMinDistance name="proximity" alarmDistance="1" contactDistance="0.1" angleCone="0.0" />
 	<FreeMotionAnimationLoop/>
 	<LCPConstraintSolver tolerance="0.001" maxIt="1000"/>
 	<GeomagicDriver name="GeomagicDevice" deviceName="Default Device" scale="1" drawDeviceFrame="0" positionBase="0 0 8" drawDevice="0" orientationBase="0.707 0 0 0.707"  />
@@ -28,9 +28,9 @@
 		<TetrahedralCorotationalFEMForceField name="FEM" method="large" poissonRatio="0.45" youngModulus="2000"/>
 		<LinearSolverConstraintCorrection />
 
-		<FixedConstraint template="Vec3d" name="Fixed Dofs" indices="0 4 20 24  70 74 974" drawSize="1" />
+		<FixedConstraint template="Vec3d" name="Fixed Dofs" indices="0 4 10 14 20 24 30 34 40 44 50 54 60 64 70 74 80 84 90 94 100 104 110 114 120 124 130 134 140 144 150 154 160 164 170 174 180 184 190 194 200 204 210 214 220 224 230 234 240 244 250 254 260 264 270 274 280 284 290 294 300 304 310 314 320 324 330 334 340 344 350 354 360 364 370 374 380 384 390 394 400 404 410 414 420 424 430 434 440 444" drawSize="1" />
 		<!--<FixedPlaneConstraint template="Vec3d" name="Plane" direction="0 0 1" d="0"/>-->
-		<PlaneForceField template="Vec3d" name="Plane" normal="0 0 1"  d="-1" />
+		<!--<PlaneForceField template="Vec3d" name="Plane" normal="0 0 1"  d="-1" />-->
 
 		<Node name="Triangles Mesh">
 			<TriangleSetTopologyContainer name="Container" />
@@ -59,7 +59,7 @@
 		<UniformMass name="mass" totalMass="0.5" />
 
 		<RestShapeSpringsForceField stiffness='1000' angularStiffness='1000' external_rest_shape='@../Omni/DOFs' points='0' external_points='0'/>
-		<LCPForceFeedback name="LCPFF1" activate="true" forceCoef="0.001"/>
+		<LCPForceFeedback name="LCPFF1" activate="true" forceCoef="0.1"/>
 		<LinearSolverConstraintCorrection />
 
 		<Node name="VisuTool" >
@@ -72,8 +72,8 @@
 			<MeshObjLoader filename="Demos/Dentistry/data/mesh/dental_instrument_centerline.obj"  name="loader"/>
 			<MeshTopology src="@loader" name="InstrumentCollisionModel" />
 			<MechanicalObject src="@loader" name="instrumentCollisionState"  ry="-180" rz="-90" dz="3.5" dx="-0.3" />
-			<LineCollisionModel contactStiffness="1"/>
-			<PointCollisionModel contactStiffness="1"/>
+			<LineCollisionModel contactStiffness="10"/>
+			<PointCollisionModel contactStiffness="10"/>
 			<RigidMapping name="MM->CM mapping" input="@instrumentState" output="@instrumentCollisionState" />
 		</Node>
 	</Node>
