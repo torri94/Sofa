@@ -33,6 +33,9 @@
 #include <sofa/defaulttype/Vec.h>
 #include <cmath>
 
+CHAR sysTimeStr[13] = {};
+SYSTEMTIME systemTime;
+
 namespace sofa::component::misc
 {
 
@@ -299,29 +302,41 @@ void Monitor<DataTypes>::initGnuplot ( const std::string path )
 template<class DataTypes>
 void Monitor<DataTypes>::exportGnuplot ( Real time )
 {
+    
+    
+        GetLocalTime(&systemTime);
+        sprintf_s(sysTimeStr,
+            "%u:%u:%u:%u",
+            systemTime.wHour,
+            systemTime.wMinute,
+            systemTime.wSecond,
+            systemTime.wMilliseconds);
+
+        
     if ( d_saveXToGnuplot.getValue() )
     {
-        ( *m_saveGnuplotX ) << time <<"\t" ;
+        (*m_saveGnuplotX) << sysTimeStr << " ";
+        ( *m_saveGnuplotX ) << time <<" " ;
 
         for (unsigned int i = 0; i < d_indices.getValue().size(); i++)
-            ( *m_saveGnuplotX ) << (*m_X)[d_indices.getValue()[i]] << "\t";
+            ( *m_saveGnuplotX ) << (*m_X)[d_indices.getValue()[i]] << " ";
         ( *m_saveGnuplotX ) << std::endl;
     }
     if ( d_saveVToGnuplot.getValue() && m_V->size()>0 )
     {
-        ( *m_saveGnuplotV ) << time <<"\t";
+        ( *m_saveGnuplotV ) << time <<" ";
 
         for (unsigned int i = 0; i < d_indices.getValue().size(); i++)
-            ( *m_saveGnuplotV ) << (*m_V)[d_indices.getValue()[i]] << "\t";
+            ( *m_saveGnuplotV ) << (*m_V)[d_indices.getValue()[i]] << " ";
         ( *m_saveGnuplotV ) << std::endl;
     }
 
     if ( d_saveFToGnuplot.getValue() && m_F->size()>0)
     {
-        ( *m_saveGnuplotF ) << time <<"\t";
+        ( *m_saveGnuplotF ) << time <<" ";
 
         for (unsigned int i = 0; i < d_indices.getValue().size(); i++)
-            ( *m_saveGnuplotF ) << (*m_F)[d_indices.getValue()[i]] << "\t";
+            ( *m_saveGnuplotF ) << (*m_F)[d_indices.getValue()[i]] << " ";
         ( *m_saveGnuplotF ) << std::endl;
     }
 }
